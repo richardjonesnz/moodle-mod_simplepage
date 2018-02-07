@@ -15,25 +15,25 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Define all the backup steps that will be used by the backup_newmodule_activity_task
+ * Define all the backup steps that will be used by the backup_simplepage_activity_task
  *
- * @package   mod_newmodule
+ * @package   mod_simplepage
  * @category  backup
- * @copyright 2016 Your Name <your@email.address>
+ * @copyright 2018 Richard Jones https://richardnz.net
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die;
 
 /**
- * Define the complete newmodule structure for backup, with file and id annotations
+ * Define the complete simplepage structure for backup, with file and id annotations
  *
- * @package   mod_newmodule
+ * @package   mod_simplepage
  * @category  backup
- * @copyright 2016 Your Name <your@email.address>
+ * @copyright 2018 Richard Jones https://richardnz.net
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class backup_newmodule_activity_structure_step extends backup_activity_structure_step {
+class backup_simplepage_activity_structure_step extends backup_activity_structure_step {
 
     /**
      * Defines the backup structure of the module
@@ -45,22 +45,22 @@ class backup_newmodule_activity_structure_step extends backup_activity_structure
         // Get know if we are including userinfo.
         $userinfo = $this->get_setting_value('userinfo');
 
-        // Define the root element describing the newmodule instance.
-        $newmodule = new backup_nested_element('newmodule', array('id'), array(
+        // Define the root element describing the simplepage instance.
+        $simplepage = new backup_nested_element('simplepage', array('id'), array(
             'name', 'intro', 'introformat', 'grade'));
 
         // If we had more elements, we would build the tree here.
 
         // Define data sources.
-        $newmodule->set_source_table('newmodule', array('id' => backup::VAR_ACTIVITYID));
+        $simplepage->set_source_table('simplepage', array('id' => backup::VAR_ACTIVITYID));
 
         // If we were referring to other tables, we would annotate the relation
         // with the element's annotate_ids() method.
 
         // Define file annotations (we do not use itemid in this example).
-        $newmodule->annotate_files('mod_newmodule', 'intro', null);
+        $simplepage->annotate_files('mod_simplepage', 'intro', null);
 
-        // Return the root element (newmodule), wrapped into standard activity structure.
-        return $this->prepare_activity_structure($newmodule);
+        // Return the root element (simplepage), wrapped into standard activity structure.
+        return $this->prepare_activity_structure($simplepage);
     }
 }

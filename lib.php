@@ -15,26 +15,47 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Library of interface functions and constants for module newmodule
+ * Library of interface functions and constants for module simplepage
  *
  * All the core Moodle functions, neeeded to allow the module to work
  * integrated in Moodle should be placed here.
  *
- * All the newmodule specific functions, needed to implement all the module
+ * All the simplepage specific functions, needed to implement all the module
  * logic, should go to locallib.php. This will help to save some memory when
  * Moodle is performing actions across all modules.
  *
- * @package    mod_newmodule
- * @copyright  2016 Your Name <your@email.address>
+ * @package    mod_simplepage
+ * @copyright  2018 Richard Jones https://richardnz.net
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
-/**
- * Example constant, you probably want to remove this :-)
- */
-define('NEWMODULE_ULTIMATE_ANSWER', 42);
+// Callbacks for comment api
+function mod_simplepage_comment_validate($comment_param) {
+    if ($comment_param->commentarea != 'page_comments') {
+        throw new comment_exception('invalidcommentarea');
+    }
+    if ($comment_param->itemid != 0) {
+        throw new comment_exception('invalidcommentitemid');
+    }
+    return true;
+}
+
+// Will need to check this against my mods access.php eventually
+function mod_simplepage_comment_permissions($args) {
+    return array('post'=>true, 'view'=>true);
+}
+
+function mod_simplepage_comment_display($comments, $args) {
+    if ($args->commentarea != 'page_comments') {
+        throw new comment_exception('invalidcommentarea');
+    }
+    if ($args->itemid != 0) {
+        throw new comment_exception('invalidcommentitemid');
+    }
+    return $comments;
+}
 
 /* Moodle core API */
 
@@ -46,7 +67,7 @@ define('NEWMODULE_ULTIMATE_ANSWER', 42);
  * @param string $feature FEATURE_xx constant for requested feature
  * @return mixed true if the feature is supported, null if unknown
  */
-function newmodule_supports($feature) {
+function simplepage_supports($feature) {
 
     switch($feature) {
         case FEATURE_MOD_INTRO:
@@ -63,53 +84,53 @@ function newmodule_supports($feature) {
 }
 
 /**
- * Saves a new instance of the newmodule into the database
+ * Saves a new instance of the simplepage into the database
  *
  * Given an object containing all the necessary data,
  * (defined by the form in mod_form.php) this function
  * will create a new instance and return the id number
  * of the new instance.
  *
- * @param stdClass $newmodule Submitted data from the form in mod_form.php
- * @param mod_newmodule_mod_form $mform The form instance itself (if needed)
- * @return int The id of the newly inserted newmodule record
+ * @param stdClass $simplepage Submitted data from the form in mod_form.php
+ * @param mod_simplepage_mod_form $mform The form instance itself (if needed)
+ * @return int The id of the newly inserted simplepage record
  */
-function newmodule_add_instance(stdClass $newmodule, mod_newmodule_mod_form $mform = null) {
+function simplepage_add_instance(stdClass $simplepage, mod_simplepage_mod_form $mform = null) {
     global $DB;
 
-    $newmodule->timecreated = time();
+    $simplepage->timecreated = time();
 
     // You may have to add extra stuff in here.
 
-    $newmodule->id = $DB->insert_record('newmodule', $newmodule);
+    $simplepage->id = $DB->insert_record('simplepage', $simplepage);
 
-    newmodule_grade_item_update($newmodule);
+    simplepage_grade_item_update($simplepage);
 
-    return $newmodule->id;
+    return $simplepage->id;
 }
 
 /**
- * Updates an instance of the newmodule in the database
+ * Updates an instance of the simplepage in the database
  *
  * Given an object containing all the necessary data,
  * (defined by the form in mod_form.php) this function
  * will update an existing instance with new data.
  *
- * @param stdClass $newmodule An object from the form in mod_form.php
- * @param mod_newmodule_mod_form $mform The form instance itself (if needed)
+ * @param stdClass $simplepage An object from the form in mod_form.php
+ * @param mod_simplepage_mod_form $mform The form instance itself (if needed)
  * @return boolean Success/Fail
  */
-function newmodule_update_instance(stdClass $newmodule, mod_newmodule_mod_form $mform = null) {
+function simplepage_update_instance(stdClass $simplepage, mod_simplepage_mod_form $mform = null) {
     global $DB;
 
-    $newmodule->timemodified = time();
-    $newmodule->id = $newmodule->instance;
+    $simplepage->timemodified = time();
+    $simplepage->id = $simplepage->instance;
 
     // You may have to add extra stuff in here.
 
-    $result = $DB->update_record('newmodule', $newmodule);
+    $result = $DB->update_record('simplepage', $simplepage);
 
-    newmodule_grade_item_update($newmodule);
+    simplepage_grade_item_update($simplepage);
 
     return $result;
 }
@@ -117,36 +138,36 @@ function newmodule_update_instance(stdClass $newmodule, mod_newmodule_mod_form $
 /**
  * This standard function will check all instances of this module
  * and make sure there are up-to-date events created for each of them.
- * If courseid = 0, then every newmodule event in the site is checked, else
- * only newmodule events belonging to the course specified are checked.
+ * If courseid = 0, then every simplepage event in the site is checked, else
+ * only simplepage events belonging to the course specified are checked.
  * This is only required if the module is generating calendar events.
  *
  * @param int $courseid Course ID
  * @return bool
  */
-function newmodule_refresh_events($courseid = 0) {
+function simplepage_refresh_events($courseid = 0) {
     global $DB;
 
     if ($courseid == 0) {
-        if (!$newmodules = $DB->get_records('newmodule')) {
+        if (!$simplepages = $DB->get_records('simplepage')) {
             return true;
         }
     } else {
-        if (!$newmodules = $DB->get_records('newmodule', array('course' => $courseid))) {
+        if (!$simplepages = $DB->get_records('simplepage', array('course' => $courseid))) {
             return true;
         }
     }
 
-    foreach ($newmodules as $newmodule) {
+    foreach ($simplepages as $simplepage) {
         // Create a function such as the one below to deal with updating calendar events.
-        // newmodule_update_events($newmodule);
+        // simplepage_update_events($simplepage);
     }
 
     return true;
 }
 
 /**
- * Removes an instance of the newmodule from the database
+ * Removes an instance of the simplepage from the database
  *
  * Given an ID of an instance of this module,
  * this function will permanently delete the instance
@@ -155,18 +176,18 @@ function newmodule_refresh_events($courseid = 0) {
  * @param int $id Id of the module instance
  * @return boolean Success/Failure
  */
-function newmodule_delete_instance($id) {
+function simplepage_delete_instance($id) {
     global $DB;
 
-    if (! $newmodule = $DB->get_record('newmodule', array('id' => $id))) {
+    if (! $simplepage = $DB->get_record('simplepage', array('id' => $id))) {
         return false;
     }
 
     // Delete any dependent records here.
 
-    $DB->delete_records('newmodule', array('id' => $newmodule->id));
+    $DB->delete_records('simplepage', array('id' => $simplepage->id));
 
-    newmodule_grade_item_delete($newmodule);
+    simplepage_grade_item_delete($simplepage);
 
     return true;
 }
@@ -182,10 +203,10 @@ function newmodule_delete_instance($id) {
  * @param stdClass $course The course record
  * @param stdClass $user The user record
  * @param cm_info|stdClass $mod The course module info object or record
- * @param stdClass $newmodule The newmodule instance record
+ * @param stdClass $simplepage The simplepage instance record
  * @return stdClass|null
  */
-function newmodule_user_outline($course, $user, $mod, $newmodule) {
+function simplepage_user_outline($course, $user, $mod, $simplepage) {
 
     $return = new stdClass();
     $return->time = 0;
@@ -202,21 +223,21 @@ function newmodule_user_outline($course, $user, $mod, $newmodule) {
  * @param stdClass $course the current course record
  * @param stdClass $user the record of the user we are generating report for
  * @param cm_info $mod course module info
- * @param stdClass $newmodule the module instance record
+ * @param stdClass $simplepage the module instance record
  */
-function newmodule_user_complete($course, $user, $mod, $newmodule) {
+function simplepage_user_complete($course, $user, $mod, $simplepage) {
 }
 
 /**
  * Given a course and a time, this module should find recent activity
- * that has occurred in newmodule activities and print it out.
+ * that has occurred in simplepage activities and print it out.
  *
  * @param stdClass $course The course record
  * @param bool $viewfullnames Should we display full names
  * @param int $timestart Print activity since this timestamp
  * @return boolean True if anything was printed, otherwise false
  */
-function newmodule_print_recent_activity($course, $viewfullnames, $timestart) {
+function simplepage_print_recent_activity($course, $viewfullnames, $timestart) {
     return false;
 }
 
@@ -225,7 +246,7 @@ function newmodule_print_recent_activity($course, $viewfullnames, $timestart) {
  *
  * This callback function is supposed to populate the passed array with
  * custom activity records. These records are then rendered into HTML via
- * {@link newmodule_print_recent_mod_activity()}.
+ * {@link simplepage_print_recent_mod_activity()}.
  *
  * Returns void, it adds items into $activities and increases $index.
  *
@@ -237,11 +258,11 @@ function newmodule_print_recent_activity($course, $viewfullnames, $timestart) {
  * @param int $userid check for a particular user's activity only, defaults to 0 (all users)
  * @param int $groupid check for a particular group's activity only, defaults to 0 (all groups)
  */
-function newmodule_get_recent_mod_activity(&$activities, &$index, $timestart, $courseid, $cmid, $userid=0, $groupid=0) {
+function simplepage_get_recent_mod_activity(&$activities, &$index, $timestart, $courseid, $cmid, $userid=0, $groupid=0) {
 }
 
 /**
- * Prints single activity item prepared by {@link newmodule_get_recent_mod_activity()}
+ * Prints single activity item prepared by {@link simplepage_get_recent_mod_activity()}
  *
  * @param stdClass $activity activity record with added 'cmid' property
  * @param int $courseid the id of the course we produce the report for
@@ -249,7 +270,7 @@ function newmodule_get_recent_mod_activity(&$activities, &$index, $timestart, $c
  * @param array $modnames as returned by {@link get_module_types_names()}
  * @param bool $viewfullnames display users' full names
  */
-function newmodule_print_recent_mod_activity($activity, $courseid, $detail, $modnames, $viewfullnames) {
+function simplepage_print_recent_mod_activity($activity, $courseid, $detail, $modnames, $viewfullnames) {
 }
 
 /**
@@ -262,7 +283,7 @@ function newmodule_print_recent_mod_activity($activity, $courseid, $detail, $mod
  *
  * @return boolean
  */
-function newmodule_cron () {
+function simplepage_cron () {
     return true;
 }
 
@@ -274,26 +295,26 @@ function newmodule_cron () {
  *
  * @return array
  */
-function newmodule_get_extra_capabilities() {
+function simplepage_get_extra_capabilities() {
     return array();
 }
 
 /* Gradebook API */
 
 /**
- * Is a given scale used by the instance of newmodule?
+ * Is a given scale used by the instance of simplepage?
  *
- * This function returns if a scale is being used by one newmodule
+ * This function returns if a scale is being used by one simplepage
  * if it has support for grading and scales.
  *
- * @param int $newmoduleid ID of an instance of this module
+ * @param int $simplepageid ID of an instance of this module
  * @param int $scaleid ID of the scale
- * @return bool true if the scale is used by the given newmodule instance
+ * @return bool true if the scale is used by the given simplepage instance
  */
-function newmodule_scale_used($newmoduleid, $scaleid) {
+function simplepage_scale_used($simplepageid, $scaleid) {
     global $DB;
 
-    if ($scaleid and $DB->record_exists('newmodule', array('id' => $newmoduleid, 'grade' => -$scaleid))) {
+    if ($scaleid and $DB->record_exists('simplepage', array('id' => $simplepageid, 'grade' => -$scaleid))) {
         return true;
     } else {
         return false;
@@ -301,17 +322,17 @@ function newmodule_scale_used($newmoduleid, $scaleid) {
 }
 
 /**
- * Checks if scale is being used by any instance of newmodule.
+ * Checks if scale is being used by any instance of simplepage.
  *
  * This is used to find out if scale used anywhere.
  *
  * @param int $scaleid ID of the scale
- * @return boolean true if the scale is used by any newmodule instance
+ * @return boolean true if the scale is used by any simplepage instance
  */
-function newmodule_scale_used_anywhere($scaleid) {
+function simplepage_scale_used_anywhere($scaleid) {
     global $DB;
 
-    if ($scaleid and $DB->record_exists('newmodule', array('grade' => -$scaleid))) {
+    if ($scaleid and $DB->record_exists('simplepage', array('grade' => -$scaleid))) {
         return true;
     } else {
         return false;
@@ -319,29 +340,29 @@ function newmodule_scale_used_anywhere($scaleid) {
 }
 
 /**
- * Creates or updates grade item for the given newmodule instance
+ * Creates or updates grade item for the given simplepage instance
  *
  * Needed by {@link grade_update_mod_grades()}.
  *
- * @param stdClass $newmodule instance object with extra cmidnumber and modname property
+ * @param stdClass $simplepage instance object with extra cmidnumber and modname property
  * @param bool $reset reset grades in the gradebook
  * @return void
  */
-function newmodule_grade_item_update(stdClass $newmodule, $reset=false) {
+function simplepage_grade_item_update(stdClass $simplepage, $reset=false) {
     global $CFG;
     require_once($CFG->libdir.'/gradelib.php');
 
     $item = array();
-    $item['itemname'] = clean_param($newmodule->name, PARAM_NOTAGS);
+    $item['itemname'] = clean_param($simplepage->name, PARAM_NOTAGS);
     $item['gradetype'] = GRADE_TYPE_VALUE;
 
-    if ($newmodule->grade > 0) {
+    if ($simplepage->grade > 0) {
         $item['gradetype'] = GRADE_TYPE_VALUE;
-        $item['grademax']  = $newmodule->grade;
+        $item['grademax']  = $simplepage->grade;
         $item['grademin']  = 0;
-    } else if ($newmodule->grade < 0) {
+    } else if ($simplepage->grade < 0) {
         $item['gradetype'] = GRADE_TYPE_SCALE;
-        $item['scaleid']   = -$newmodule->grade;
+        $item['scaleid']   = -$simplepage->grade;
     } else {
         $item['gradetype'] = GRADE_TYPE_NONE;
     }
@@ -350,40 +371,40 @@ function newmodule_grade_item_update(stdClass $newmodule, $reset=false) {
         $item['reset'] = true;
     }
 
-    grade_update('mod/newmodule', $newmodule->course, 'mod', 'newmodule',
-            $newmodule->id, 0, null, $item);
+    grade_update('mod/simplepage', $simplepage->course, 'mod', 'simplepage',
+            $simplepage->id, 0, null, $item);
 }
 
 /**
- * Delete grade item for given newmodule instance
+ * Delete grade item for given simplepage instance
  *
- * @param stdClass $newmodule instance object
+ * @param stdClass $simplepage instance object
  * @return grade_item
  */
-function newmodule_grade_item_delete($newmodule) {
+function simplepage_grade_item_delete($simplepage) {
     global $CFG;
     require_once($CFG->libdir.'/gradelib.php');
 
-    return grade_update('mod/newmodule', $newmodule->course, 'mod', 'newmodule',
-            $newmodule->id, 0, null, array('deleted' => 1));
+    return grade_update('mod/simplepage', $simplepage->course, 'mod', 'simplepage',
+            $simplepage->id, 0, null, array('deleted' => 1));
 }
 
 /**
- * Update newmodule grades in the gradebook
+ * Update simplepage grades in the gradebook
  *
  * Needed by {@link grade_update_mod_grades()}.
  *
- * @param stdClass $newmodule instance object with extra cmidnumber and modname property
+ * @param stdClass $simplepage instance object with extra cmidnumber and modname property
  * @param int $userid update grade of specific user only, 0 means all participants
  */
-function newmodule_update_grades(stdClass $newmodule, $userid = 0) {
+function simplepage_update_grades(stdClass $simplepage, $userid = 0) {
     global $CFG, $DB;
     require_once($CFG->libdir.'/gradelib.php');
 
     // Populate array of grade objects indexed by userid.
     $grades = array();
 
-    grade_update('mod/newmodule', $newmodule->course, 'mod', 'newmodule', $newmodule->id, 0, $grades);
+    grade_update('mod/simplepage', $simplepage->course, 'mod', 'simplepage', $simplepage->id, 0, $grades);
 }
 
 /* File API */
@@ -399,14 +420,14 @@ function newmodule_update_grades(stdClass $newmodule, $userid = 0) {
  * @param stdClass $context
  * @return array of [(string)filearea] => (string)description
  */
-function newmodule_get_file_areas($course, $cm, $context) {
+function simplepage_get_file_areas($course, $cm, $context) {
     return array();
 }
 
 /**
- * File browsing support for newmodule file areas
+ * File browsing support for simplepage file areas
  *
- * @package mod_newmodule
+ * @package mod_simplepage
  * @category files
  *
  * @param file_browser $browser
@@ -420,25 +441,25 @@ function newmodule_get_file_areas($course, $cm, $context) {
  * @param string $filename
  * @return file_info instance or null if not found
  */
-function newmodule_get_file_info($browser, $areas, $course, $cm, $context, $filearea, $itemid, $filepath, $filename) {
+function simplepage_get_file_info($browser, $areas, $course, $cm, $context, $filearea, $itemid, $filepath, $filename) {
     return null;
 }
 
 /**
- * Serves the files from the newmodule file areas
+ * Serves the files from the simplepage file areas
  *
- * @package mod_newmodule
+ * @package mod_simplepage
  * @category files
  *
  * @param stdClass $course the course object
  * @param stdClass $cm the course module object
- * @param stdClass $context the newmodule's context
+ * @param stdClass $context the simplepage's context
  * @param string $filearea the name of the file area
  * @param array $args extra arguments (itemid, path)
  * @param bool $forcedownload whether or not force download
  * @param array $options additional options affecting the file serving
  */
-function newmodule_pluginfile($course, $cm, $context, $filearea, array $args, $forcedownload, array $options=array()) {
+function simplepage_pluginfile($course, $cm, $context, $filearea, array $args, $forcedownload, array $options=array()) {
     global $DB, $CFG;
 
     if ($context->contextlevel != CONTEXT_MODULE) {
@@ -453,28 +474,28 @@ function newmodule_pluginfile($course, $cm, $context, $filearea, array $args, $f
 /* Navigation API */
 
 /**
- * Extends the global navigation tree by adding newmodule nodes if there is a relevant content
+ * Extends the global navigation tree by adding simplepage nodes if there is a relevant content
  *
  * This can be called by an AJAX request so do not rely on $PAGE as it might not be set up properly.
  *
- * @param navigation_node $navref An object representing the navigation tree node of the newmodule module instance
+ * @param navigation_node $navref An object representing the navigation tree node of the simplepage module instance
  * @param stdClass $course current course record
- * @param stdClass $module current newmodule instance record
+ * @param stdClass $module current simplepage instance record
  * @param cm_info $cm course module information
  */
-function newmodule_extend_navigation(navigation_node $navref, stdClass $course, stdClass $module, cm_info $cm) {
+function simplepage_extend_navigation(navigation_node $navref, stdClass $course, stdClass $module, cm_info $cm) {
     // TODO Delete this function and its docblock, or implement it.
 }
 
 /**
- * Extends the settings navigation with the newmodule settings
+ * Extends the settings navigation with the simplepage settings
  *
- * This function is called when the context for the page is a newmodule module. This is not called by AJAX
+ * This function is called when the context for the page is a simplepage module. This is not called by AJAX
  * so it is safe to rely on the $PAGE.
  *
  * @param settings_navigation $settingsnav complete settings navigation tree
- * @param navigation_node $newmodulenode newmodule administration node
+ * @param navigation_node $simplepagenode simplepage administration node
  */
-function newmodule_extend_settings_navigation(settings_navigation $settingsnav, navigation_node $newmodulenode=null) {
+function simplepage_extend_settings_navigation(settings_navigation $settingsnav, navigation_node $simplepagenode=null) {
     // TODO Delete this function and its docblock, or implement it.
 }

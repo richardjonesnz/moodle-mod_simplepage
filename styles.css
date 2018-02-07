@@ -1,0 +1,11 @@
+/**
+ * Styles for mod_simplepage
+ *
+ */
+.mod_simplepage_content {
+    margin-bottom: 10px;
+}
+.mod_simplepage_question .info {
+    display: none;
+    
+}
